@@ -1,42 +1,48 @@
-from flask import  Flask,request,jsonify
+from flask import Flask,request,jsonify
 import random
 import requests
-app=Flask(__name__)
 
-@app.route("/",methods=['GET']) 
+app = Flask(__name__)
+url = "http://numbersapi.com/"
+@app.route("/",methods=['GET'])
 def respond():
-    req=request.args
-    print(req) #ImmutableMultiDict([('name', 'Animesh')])
+    req = request.args
+    print(req)  #ImmutableiDict([('name', 'Neel')])
 
     return "You have reached the root endpoint"
 
-  
-#curl -d '{"emp":{"name":"Advait","age":"20"},"work":{"job":"stud"}}' -H "Content-Type: application/json" -X POST http://127.0.0.1:5000 
 
-#curl -d '{"name":"Advait","age":"20"}' -H "Content-Type: application/json" -X POST http://127.0.0.1:5000 
+#curl -d '({"name":"advait","age":"21"})'
+#curl -d '{"name":"advait","age":"21"}' -H "Content-Type: application/json" -X POST http://127.0.0.1:5000/
 
-#http://6b9a2fcc.ngrok.io  --localhost to the webhost generate the dynamic url using tunneling
-#ngrok http 5000
+@app.route("/",methods=['POST'])
+def verify():
+    #data = request.data
+    data = request.get_json()
+    print(data.keys())
+    return jsonify(data)
 
-  
 
-url="http://numbersapi.com/"
 @app.route("/getfact",methods=['POST'])
-def getfact():
-    req=request.get_json() #json--dictionary
-    intent=req.get("queryResult").get("intent").get("displayName")
-    number=req.get("queryResult").get("parameters").get("number")
-    qtype=req.get("queryResult").get("parameters").get("type")
-    if intent=="Trivia_Numbers":
-        if qtype=="random":
-            qtype=random.choice(["math","trivia","year"])
-        qurl=url+ str(int(number)) + "/" +qtype + "?json"
-        res=requests.get(qurl).json()["text"]
+def getFact():
+    req = request.get_json()
+    intent = req.get("queryResult").get("intent").get("displayName")
+    number = req.get("queryResult").get("parameters").get("number")
+    qtype = req.get("queryResult").get("parameters").get("type")
+    if intent == "numbers":
+        if qtype == "random":
+            qtype = random.choice(["trivia","year","math"])
+        qurl = url + str(int(number)) + "/" + qtype + "?json"
+        res = requests.get(qurl).json()["text"]
         print(res)
-    return jsonify({"fulfillmentText":res})  #printing in DialogFlow      
-     
-    print(req) #server side print --POST "name:Advait"
-    return jsonify({"fulfillmentText":"Flask Server Hit"}) #client side printing 
-   
+        print(qurl)
+        return jsonify({"fulfillmentText":res}) #prinnt on dialofflow
+    print(intent,number,qtype)
 
+
+    print(req)  #print on server side
+    return jsonify({"fulfillmentText":"Flask server hit"}) #return on client side
+
+
+if __name__ == "__main__":
 app.run()
